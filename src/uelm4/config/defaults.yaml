@@ -1,0 +1,21 @@
+model:
+  d: 512
+  vocab_size: 32000
+  band: 64
+  tied_readout: true
+memory:
+  K: 16384
+  shortlist_k: 32
+  type: "table"
+solver:
+  T_train: 2
+  T_infer: 1
+  rho: 1.0
+  beta_start: 0.5
+  beta_end: 1.5
+  tau_start: 0.2
+  tau_end: 0.05
+  early_exit_tol: 1.0e-3
+  use_wmf: false
+field:
+  spectral_norm: true

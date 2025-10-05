@@ -1,0 +1,21 @@
+model:
+  d: 256
+  vocab_size: 32000
+  band: 16
+  tied_readout: true
+memory:
+  K: 4096
+  shortlist_k: 32
+solver:
+  T_train: 2
+  T_infer: 1
+  rho: 1.0
+  beta_start: 0.5
+  beta_end: 1.5
+  early_exit_tol: 1.0e-3
+field:
+  spectral_norm: false
+cac:
+  kappa: 0.0   # off in Phase-A
+training:
+  amp: true

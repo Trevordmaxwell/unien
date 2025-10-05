@@ -1,0 +1,15 @@
+# Light config for quick unit tests
+model:
+  d: 128
+  vocab_size: 2048
+  band: 8
+memory:
+  K: 512
+  shortlist_k: 8
+solver:
+  T_train: 1
+  T_infer: 1
+  rho: 1.0
+  early_exit_tol: 1.0e-4
+field:
+  spectral_norm: false

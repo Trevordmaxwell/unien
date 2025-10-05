@@ -1,0 +1,31 @@
+model:
+  d: 2048
+  vocab_size: 32000
+  band: 256
+  tied_readout: true
+memory:
+  type: "table"
+  K: 131072
+  shortlist_k: 32
+  K0: 8192
+solver:
+  T_train: 2
+  T_infer: 1
+  rho: 1.0
+  beta_start: 0.5
+  beta_end: 1.5
+  tau_start: 0.2
+  tau_end: 0.05
+  early_exit_tol: 1.0e-3
+  use_wmf: false
+field:
+  spectral_norm: true
+cac:
+  kappa: 0.25
+controller:
+  enabled: false
+training:
+  lr: 2.0e-4
+  batch_tokens: 2000000
+  amp: true
+  grad_clip: 1.0
