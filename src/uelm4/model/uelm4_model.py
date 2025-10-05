@@ -41,7 +41,7 @@ class UELM4(nn.Module):
     def _init_memory(self) -> nn.Module | torch.Tensor:
         cfg = self.cfg
         if cfg.memory.type == "cmm":
-            return CMMemory(cfg.model.d, cfg.memory.K0)
+            return CMMemory(cfg.model.d, cfg.memory.K0, meta_path=cfg.memory.meta_path)
         return nn.Parameter(torch.randn(cfg.memory.K, cfg.model.d) * 0.02)
 
     def _lexicon_weight(self) -> torch.Tensor:

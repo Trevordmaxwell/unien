@@ -18,7 +18,7 @@ src/uelm4/
   model/         # embeddings, scout, controller, decode
   data/          # tokenizer + dataloaders
   train/         # losses, schedules, controller distillation, training loops
-scripts/          # build_landmarks.py, index_ann.py, profile_decode.py
+scripts/          # build_landmarks.py, index_ann.py, profile_decode.py, bootstrap_phase_b.py
 docs/             # design, API, experiment logs
 ```
 

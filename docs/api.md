@@ -15,6 +15,9 @@ index = build_ann_index(model.memory.detach() if hasattr(model.memory, 'detach')
 loss = distill_controller(model, [tokens], teacher_iters=3, student_iters=1)
 model = train_from_texts(["hello world"], config_name="small")
 print(model.last_train_metrics)
+# Load CMM with saved landmarks
+cfg_cmm = load_config("base16k", {"memory": {"type": "cmm", "meta_path": "artifacts/phase_b/landmarks.json"}})
+model_cmm = UELM4(cfg_cmm)
 ```
 
 Helper modules:

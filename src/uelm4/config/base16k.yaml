@@ -25,3 +25,8 @@ cac:
   kappa: 0.25
   advect: "ema"
   decay: 0.7
+
+# To enable CMM with precomputed landmarks set:
+# memory:
+#   type: "cmm"
+#   meta_path: artifacts/phase_b/landmarks.json

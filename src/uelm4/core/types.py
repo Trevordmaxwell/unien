@@ -31,6 +31,7 @@ class MemoryCfg:
     shortlist_k: int = 32
     type: str = "table"
     K0: int = 1024
+    meta_path: str | None = None
 
 
 @dataclass
