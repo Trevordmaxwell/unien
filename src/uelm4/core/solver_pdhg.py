@@ -102,11 +102,21 @@ class MirrorPDHG(nn.Module):
         T = batched_gather_rows(M, st.Kset)
         scores = torch.bmm(T, Xi.unsqueeze(-1)).squeeze(-1)  # (n,k)
 
+        mask = torch.ones_like(st.P, dtype=torch.bool)
         if self.cfg.use_wmf:
             cost = pairwise_sq_dists(T)
-            P_new = wmf_prox_step(st.P, beta * scores, cost=cost, tau=tau, lam_kl=beta)
+            P_new = wmf_prox_step(
+                st.P,
+                beta * scores,
+                cost=cost,
+                tau=tau,
+                lam_kl=beta,
+                num_iters=self.cfg.wmf_iters,
+                eps=self.cfg.wmf_eps,
+                cost_scale=self.cfg.wmf_cost_scale,
+                mask=mask,
+            )
         else:
-            mask = torch.ones_like(st.P, dtype=torch.bool)
             P_new = kl_masked_softmax(st.P, beta * scores, mask=mask)
 
         Lam_new = st.Lam + self.cfg.rho * (Y - M_T_P(M, st.Kset, P_new))
