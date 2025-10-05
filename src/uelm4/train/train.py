@@ -12,32 +12,34 @@ from ..model.uelm4_model import UELM4
 from ..train.losses import total_loss
 
 
-def _forward_sequences(model: UELM4, batch: torch.Tensor, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
-    if batch.ndim == 1:
-        logits = model(batch.to(device))
-        return logits.unsqueeze(0), batch.unsqueeze(0).to(device)
-    logits_list = []
-    targets_list = []
-    for seq in batch:
-        seq = seq.to(device)
-        logits_list.append(model(seq))
-        targets_list.append(seq)
-    return torch.stack(logits_list), torch.stack(targets_list)
+def _sequence_batch(batch: torch.Tensor) -> torch.Tensor:
+    return batch.unsqueeze(0) if batch.ndim == 1 else batch
 
 
-def train_epoch(model: UELM4, optimiser: AdamW, dataloader: Iterable[torch.Tensor], device: torch.device) -> float:
+def train_epoch(model: UELM4, optimiser: AdamW, dataloader: Iterable[torch.Tensor], device: torch.device) -> dict[str, float]:
     model.train()
-    total = 0.0
+    total_loss_value = 0.0
+    total_energy = 0.0
     batches = 0
     for batch in dataloader:
         optimiser.zero_grad()
-        logits, targets = _forward_sequences(model, batch, device)
-        loss = total_loss(logits, targets)
-        loss.backward()
+        seqs = _sequence_batch(batch)
+        num_seqs = max(seqs.shape[0], 1)
+        batch_loss = 0.0
+        batch_energy = 0.0
+        for seq in seqs:
+            seq = seq.to(device)
+            logits, state, _ = model(seq, return_state=True)
+            seq_loss = total_loss(logits, seq, state)
+            seq_loss.backward()
+            batch_loss += float(seq_loss.detach())
+            batch_energy += float(state.energy)
         optimiser.step()
-        total += float(loss.detach())
+        total_loss_value += batch_loss / num_seqs
+        total_energy += batch_energy / num_seqs
         batches += 1
-    return total / max(batches, 1)
+    denom = max(batches, 1)
+    return {"loss": total_loss_value / denom, "energy": total_energy / denom}
 
 
 def train_from_texts(texts: Iterable[str], config_name: str = "small", device: torch.device | None = None) -> UELM4:
@@ -48,7 +50,8 @@ def train_from_texts(texts: Iterable[str], config_name: str = "small", device: t
     tokenizer = SimpleTokenizer(vocab=set(" ".join(texts).split()))
     loader_cfg = LoaderConfig(max_length=cfg.solver.T_train * max(cfg.memory.shortlist_k, 4), batch_size=2)
     dataloader = build_dataloader(texts, tokenizer, loader_cfg)
-    train_epoch(model, optimiser, dataloader, device)
+    metrics = train_epoch(model, optimiser, dataloader, device)
+    model.last_train_metrics = metrics
     return model
 
 
