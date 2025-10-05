@@ -1,3 +1,4 @@
+import json
 import torch
 
 from uelm4.core.types import FieldCfg, FullCfg, MemoryCfg, ModelCfg, SolverCfg
@@ -38,3 +39,21 @@ def test_cmm_meta_path_load(tmp_path):
     actual = model.memory.landmarks_view().detach().cpu()
     assert torch.allclose(actual, landmarks)
 
+
+def test_cmm_meta_path_with_ann(tmp_path):
+    d = 12
+    table = torch.randn(128, d)
+    _, meta_path = save_landmarks(table[:96], tmp_path / "landmarks")
+    ann_meta = tmp_path / "ann_index.json"
+    ann_meta.write_text(json.dumps({"type": "cosine", "normalize": True}))
+    cfg = FullCfg(
+        model=ModelCfg(d=d, vocab_size=96, band=4),
+        memory=MemoryCfg(K=256, shortlist_k=6, type="cmm", K0=96, meta_path=str(meta_path)),
+        solver=SolverCfg(T_train=1, T_infer=1, rho=1.0, early_exit_tol=1e-4),
+        field=FieldCfg(spectral_norm=False),
+    )
+    model = UELM4(cfg).eval()
+    tokens = torch.randint(0, cfg.model.vocab_size, (16,))
+    logits = model(tokens, ann_index=str(ann_meta))
+    assert logits.shape == (tokens.shape[0], cfg.model.vocab_size)
+    assert torch.isfinite(logits).all()

@@ -54,4 +54,10 @@ Profile decode latency:
 python scripts/profile_decode.py --config small --tokens 64 --new 16
 ```
 
+Phase-B assets:
+```bash
+python scripts/bootstrap_phase_b.py path/to/table.pt artifacts/phase_b --num-landmarks 4096
+python scripts/profile_decode.py --config small --landmarks artifacts/phase_b/landmarks.json --ann artifacts/phase_b/ann_index.json --use-wmf --tokens 128 --new 32
+```
+
 Documentation lives in `docs/`, configs in `src/uelm4/config/`, and reproducible scripts under `scripts/`.

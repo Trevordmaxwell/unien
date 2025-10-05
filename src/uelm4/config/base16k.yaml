@@ -30,3 +30,14 @@ cac:
 # memory:
 #   type: "cmm"
 #   meta_path: artifacts/phase_b/landmarks.json
+
+# Phase-B CMM example override
+# memory:
+#   type: "cmm"
+#   K0: 4096
+#   meta_path: artifacts/phase_b/landmarks.json
+# solver:
+#   use_wmf: true
+#   wmf_iters: 4
+#   wmf_eps: 5.0e-4
+#   wmf_cost_scale: 0.5

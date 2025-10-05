@@ -76,10 +76,16 @@ class UELM4(nn.Module):
         cache_state = cache
         iters = T if T is not None else cfg.solver.T_train
         self.solver.reset()
+        prev_energy = float("inf")
         for _ in range(iters):
             st, cache_state = self.solver.step(st, X, memory_table, cache=cache_state)
-            if st.energy <= cfg.solver.early_exit_tol:
-                break
+            if prev_energy != float("inf"):
+                delta = abs(prev_energy - st.energy)
+                denom = max(abs(prev_energy), 1e-6)
+                rel_drop = delta / denom
+                if rel_drop <= cfg.solver.early_exit_tol:
+                    break
+            prev_energy = st.energy
 
         logits = self.readout(st.Y)
         if return_state:

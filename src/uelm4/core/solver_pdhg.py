@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -8,11 +9,15 @@ from torch import nn
 
 from .cac import CacheState, apply_cache_penalty
 from .control_path import Path
-from .energy import total_energy
+from .energy import compute_energy_terms, total_energy
 from .kl_prox import kl_masked_softmax
+from .preconditioners import IdentityPrecond
 from .symp_diss_field import BandedField, cde_split_step
 from .types import CACCfg, SolverCfg
 from .wmf_prox import wmf_prox_step
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -52,6 +57,7 @@ class MirrorPDHG(nn.Module):
         self.field = field
         self.controller = controller
         self.cac_cfg = cac_cfg or CACCfg()
+        self.precond = IdentityPrecond()
         self.register_buffer("_iter", torch.zeros(1, dtype=torch.long))
 
     def reset(self) -> None:
@@ -96,6 +102,7 @@ class MirrorPDHG(nn.Module):
         # Residual & dual signal
         Y_from_P = M_T_P(M, st.Kset, st.P)
         resid = Y - Y_from_P
+        resid = self.precond.apply(resid)
         Xi = st.Lam + self.cfg.rho * resid
 
         # Scores per shortlist atom
@@ -120,8 +127,19 @@ class MirrorPDHG(nn.Module):
             P_new = kl_masked_softmax(st.P, beta * scores, mask=mask)
 
         Lam_new = st.Lam + self.cfg.rho * (Y - M_T_P(M, st.Kset, P_new))
-        energy = total_energy(SolverState(P_new, Y, Lam_new, st.Kset, 0.0), M, self.cfg.rho) + cache_energy
-        return SolverState(P=P_new, Y=Y, Lam=Lam_new, Kset=st.Kset, energy=float(energy.detach())), updated_cache
+        state_tmp = SolverState(P_new, Y, Lam_new, st.Kset, 0.0)
+        energy_tensor = total_energy(state_tmp, M, self.cfg.rho) + cache_energy
+        if logger.isEnabledFor(logging.DEBUG):
+            terms = compute_energy_terms(state_tmp, M, self.cfg.rho)
+            logger.debug(
+                "solver energy=%f primal=%f dual=%f entropy=%f cache=%f",
+                float(energy_tensor.detach()),
+                float(terms["primal"].detach()),
+                float(terms["dual"].detach()),
+                float(terms["entropy"].detach()),
+                float(cache_energy.detach()),
+            )
+        return SolverState(P=P_new, Y=Y, Lam=Lam_new, Kset=st.Kset, energy=float(energy_tensor.detach())), updated_cache
 
 
 __all__ = ["SolverState", "MirrorPDHG", "batched_gather_rows", "M_T_P", "pairwise_sq_dists"]

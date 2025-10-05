@@ -19,3 +19,9 @@ memory:
 ```
 
 and set `ann_index` when calling the model (path to `ann_index.json`).
+
+Quick profile using the saved assets:
+
+```bash
+python scripts/profile_decode.py --config small --landmarks artifacts/phase_b/landmarks.json --ann artifacts/phase_b/ann_index.json --use-wmf --tokens 128 --new 32
+```
