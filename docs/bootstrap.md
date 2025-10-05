@@ -25,3 +25,9 @@ Quick profile using the saved assets:
 ```bash
 python scripts/profile_decode.py --config small --landmarks artifacts/phase_b/landmarks.json --ann artifacts/phase_b/ann_index.json --use-wmf --tokens 128 --new 32
 ```
+
+Run quick sweeps to compare settings:
+
+```bash
+python scripts/hparam_sweep.py --config small --epochs 1 --sweeps '[{"solver": {"T_train": 1}}, {"solver": {"T_train": 2}}]'
+```

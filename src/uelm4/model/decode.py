@@ -1,5 +1,6 @@
 import torch
 
+from ..core.cac import CacheState
 from ..memory.ann import ANNIndex
 from .uelm4_model import UELM4
 
@@ -12,8 +13,15 @@ def greedy_decode(
     ann_index: ANNIndex | str | None = None,
 ):
     ids = prompt_ids.clone()
+    cache: CacheState | None = None
     for _ in range(max_new_tokens):
-        logits = model(ids, ann_index=ann_index)
+        logits, _, cache = model(
+            ids,
+            T=model.cfg.solver.T_infer,
+            cache=cache,
+            ann_index=ann_index,
+            return_state=True,
+        )
         next_id = logits[-1].argmax(dim=-1, keepdim=True)
         ids = torch.cat([ids, next_id], dim=0)
     return ids

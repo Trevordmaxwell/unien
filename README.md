@@ -40,6 +40,11 @@ Sample corpus training:
 python scripts/train_sample.py --config small --epochs 2
 ```
 
+Hyperparameter sweep:
+```bash
+python scripts/hparam_sweep.py --config small --epochs 1 --sweeps '[{"solver": {"T_train": 1}}, {"solver": {"T_train": 2}}]'
+```
+
 Controller distillation:
 ```python
 from uelm4.config import load_config

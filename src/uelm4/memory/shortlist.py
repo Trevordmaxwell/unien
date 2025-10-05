@@ -49,10 +49,10 @@ def shortlist(
         Kset = topk.indices.long()
 
     mask = torch.ones_like(Kset, dtype=torch.bool, device=Kset.device)
-    if causal:
-        positions = torch.arange(n, device=E.device).unsqueeze(-1)
-        causal_mask = Kset <= positions.max()
-        mask = mask & causal_mask
+    if causal and hasattr(memory, "positions_of_indices"):
+        pat_pos = memory.positions_of_indices(Kset)  # type: ignore[attr-defined]
+        tok_pos = torch.arange(n, device=E.device).unsqueeze(-1).expand_as(pat_pos)
+        mask = pat_pos <= tok_pos
     return Kset, mask
 
 

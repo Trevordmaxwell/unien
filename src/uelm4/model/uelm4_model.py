@@ -33,8 +33,9 @@ class UELM4(nn.Module):
         )
         self.solver = MirrorPDHG(cfg.solver, self.field, controller, cac_cfg=cfg.cac)
         if cfg.model.tied_readout:
-            lex_weight = self._lexicon_weight().detach()
-            self.readout = TiedReadout(lex_weight)
+            lex_weight = self._lexicon_weight()
+            self.readout = TiedReadout(lex_weight.detach())
+            self.readout.tie_to(lex_weight)
         else:
             self.readout = nn.Linear(cfg.model.d, cfg.model.vocab_size)
 
@@ -51,6 +52,10 @@ class UELM4(nn.Module):
             table = self.memory
         return table[: self.cfg.model.vocab_size]
 
+    def _retie_readout_if_needed(self) -> None:
+        if isinstance(self.readout, TiedReadout):
+            self.readout.tie_to(self._lexicon_weight())
+
     def forward(
         self,
         tokens: torch.Tensor,
@@ -65,9 +70,9 @@ class UELM4(nn.Module):
         memory_table = self.memory.landmarks_view() if isinstance(self.memory, CMMemory) else self.memory
         if isinstance(ann_index, (str, Path)):
             ann_index = load_ann_index(ann_index, memory_table)
-        Kset, _ = shortlist(E, self.memory, cfg.memory.shortlist_k, ann_index=ann_index)
         if cfg.model.tied_readout:
-            self.readout.tie_to(self._lexicon_weight())
+            self._retie_readout_if_needed()
+        Kset, _ = shortlist(E, self.memory, cfg.memory.shortlist_k, ann_index=ann_index)
 
         P0, Y0 = self.scout(E, memory_table, Kset)
         Lam0 = torch.zeros_like(Y0)
