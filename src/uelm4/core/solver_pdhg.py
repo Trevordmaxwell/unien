@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 import torch
 from torch import nn
@@ -45,11 +46,12 @@ def pairwise_sq_dists(T: torch.Tensor) -> torch.Tensor:
 class MirrorPDHG(nn.Module):
     """Phase-A/B solver with KL or WMF proximal updates."""
 
-    def __init__(self, cfg: SolverCfg, field: BandedField):
+    def __init__(self, cfg: SolverCfg, field: BandedField, controller: Optional[nn.Module] = None):
         super().__init__()
         self.cfg = cfg
         self.field = field
         self.precond = IdentityPrecond()
+        self.controller = controller
         self.register_buffer("_iter", torch.zeros(1, dtype=torch.long))
 
     def _interp(self, start: float, end: float) -> float:
@@ -62,6 +64,11 @@ class MirrorPDHG(nn.Module):
         self._iter += 1
         beta = self._interp(self.cfg.beta_start, self.cfg.beta_end)
         tau = self._interp(self.cfg.tau_start, self.cfg.tau_end)
+
+        if self.controller is not None:
+            schedule = self.controller(st)
+            beta = schedule.get("beta", beta)
+            tau = schedule.get("tau", tau)
 
         # Y-step
         Y = cde_split_step(st.Y, X, self.field, step=1.0)

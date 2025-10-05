@@ -17,6 +17,9 @@ class BandedField(nn.Module):
         spec = BandedSpec(channels=d, band=band, bias=False, spectral_norm=spectral_norm)
         self.symplectic = CausalBandedConv1d(spec)
         self.dissipative = CausalBandedConv1d(spec)
+        # Backwards compatibility for tests that poke weights directly
+        self.conv_s = self.symplectic.conv
+        self.conv_d = self.dissipative.conv
 
     def forward(self, Y: torch.Tensor, t_feat: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         S = self.symplectic(Y)

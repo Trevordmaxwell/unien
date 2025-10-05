@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "uelm4"
 version = "0.1.0"
-description = "Unified Equilibrium Language Model (Phase-A MVP)"
+description = "Unified Equilibrium Language Model (Phase-A/B scaffold)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -16,6 +16,9 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"uelm4" = ["config/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

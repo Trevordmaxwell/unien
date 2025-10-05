@@ -1,10 +1,12 @@
+# Alias config; prefer using `uelm4.config.load_config("base16k")`.
 model:
-  d: 256
+  d: 2048
   vocab_size: 32000
-  band: 16
+  band: 256
   tied_readout: true
 memory:
-  K: 4096
+  type: "table"
+  K: 131072
   shortlist_k: 32
 solver:
   T_train: 2
@@ -14,8 +16,4 @@ solver:
   beta_end: 1.5
   early_exit_tol: 1.0e-3
 field:
-  spectral_norm: false
-cac:
-  kappa: 0.0   # off in Phase-A
-training:
-  amp: true
+  spectral_norm: true

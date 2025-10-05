@@ -1,18 +1,43 @@
-# UELM-4 (Phase-A MVP)
+# UELM-4
 
-Minimal, testable implementation of the Unified Equilibrium Language Model:
-- Dual-Simplex state `P` (top-k per token), representation `Y = M^T P`
-- Causal banded field (symplectic-dissipative split, simplified)
-- Table memory with per-token shortlist
-- KL-prox update on the simplex (masked softmax)
-- Two-block solver step (Y-step + P-step + Dual)
-- Tied readout from `Y` to logits
+Unified Equilibrium Language Model prototype covering Phase-A (table memory + KL prox) and scaffolding for Phase-B (CMM + WMF + controller).
+
+## Features
+- Dual-simplex state `P` with tied readout and causal shortlist.
+- Mirror-PDHG solver with optional Wasserstein-Mirror prox and meta-controller schedules.
+- Causal symplectic/dissipative field implemented via reusable banded operators.
+- Memory backends: table or Continuous Memory Measure (CMM) with landmark generator.
+- Lightweight data, training, and evaluation helpers plus profiling scripts.
+
+## Layout
+```
+src/uelm4/
+  config/        # YAML configs + loader
+  core/          # solver, energy, implicit autodiff, banded ops
+  memory/        # shortlist, table/CMM, readout, RAG bridge
+  model/         # embeddings, scout, controller, decode
+  data/          # tokenizer + dataloaders
+  train/         # losses, schedules, training loops
+scripts/          # build_landmarks.py, index_ann.py, profile_decode.py
+docs/             # design, API, experiment logs
+```
 
 ## Quickstart
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
-pytest
+pytest -q
 ```
 
-See `configs/base16k.yaml` for default settings.
+To run a tiny training loop on CPU:
+```python
+from uelm4.train import train_from_texts
+model = train_from_texts(["hello world", "uelm4 prototype"], config_name="small")
+```
+
+Profile decode latency:
+```bash
+python scripts/profile_decode.py --config small --tokens 64 --new 16
+```
+
+Documentation lives in `docs/`, configs in `src/uelm4/config/`, and reproducible scripts under `scripts/`.
