@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import torch
 import torch.nn as nn
+
+from .landmark_io import load_landmarks
 
 
 @dataclass
@@ -32,9 +35,21 @@ class LandmarkGenerator(nn.Module):
 class CMMemory(nn.Module):
     """Continuous Memory Measure represented by learnable landmarks."""
 
-    def __init__(self, d: int, num_landmarks: int, generator_cfg: GeneratorCfg | None = None):
+    def __init__(
+        self,
+        d: int,
+        num_landmarks: int,
+        generator_cfg: GeneratorCfg | None = None,
+        meta_path: str | Path | None = None,
+    ):
         super().__init__()
-        self.landmarks = nn.Parameter(torch.randn(num_landmarks, d) * 0.02)
+        if meta_path is not None:
+            landmarks = load_landmarks(meta_path)
+            if landmarks.shape[1] != d:
+                raise ValueError("Loaded landmarks dimension mismatch with model width")
+            self.landmarks = nn.Parameter(landmarks)
+        else:
+            self.landmarks = nn.Parameter(torch.randn(num_landmarks, d) * 0.02)
         self.generator = LandmarkGenerator(d, generator_cfg or GeneratorCfg())
 
     def forward(self) -> torch.Tensor:

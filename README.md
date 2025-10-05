@@ -6,7 +6,7 @@ Unified Equilibrium Language Model prototype covering Phase-A (table memory + KL
 - Dual-simplex state `P` with tied readout, causal shortlist, and cache-as-constraint support (identity/shift/EMA/conv advectors).
 - Mirror-PDHG solver with optional Wasserstein-Mirror prox (iters/eps/cost scaling), meta-controller schedules, and ANN-accelerated shortlist search (FAISS fallback to cosine top-k).
 - Causal symplectic/dissipative field implemented via reusable banded operators.
-- Memory backends: table or Continuous Memory Measure (CMM) with landmark generator and RAG bridge hooks.
+- Memory backends: table or Continuous Memory Measure (CMM) with landmark generator, metadata I/O, and RAG bridge hooks.
 - Lightweight data, training, controller-distillation, and evaluation helpers plus profiling scripts.
 
 ## Layout
