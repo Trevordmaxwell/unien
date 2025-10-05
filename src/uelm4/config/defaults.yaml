@@ -17,5 +17,12 @@ solver:
   tau_end: 0.05
   early_exit_tol: 1.0e-3
   use_wmf: false
+  wmf_iters: 3
+  wmf_eps: 1.0e-3
+  wmf_cost_scale: 1.0
 field:
   spectral_norm: true
+cac:
+  kappa: 0.1
+  advect: "ema"
+  decay: 0.5

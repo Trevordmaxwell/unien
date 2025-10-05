@@ -6,7 +6,7 @@ from typing import Any, Mapping
 
 import yaml
 
-from ..core.types import FullCfg, ModelCfg, MemoryCfg, SolverCfg, FieldCfg
+from ..core.types import FullCfg, ModelCfg, MemoryCfg, SolverCfg, FieldCfg, CACCfg
 
 CONFIG_ROOT = Path(__file__).resolve().parent
 
@@ -18,6 +18,7 @@ __all__ = [
     "MemoryCfg",
     "SolverCfg",
     "FieldCfg",
+    "CACCfg",
 ]
 
 
@@ -44,7 +45,8 @@ def load_config(name: str | Path, overrides: Mapping[str, Any] | None = None) ->
     memory = MemoryCfg(**data.get("memory", {}))
     solver = SolverCfg(**data.get("solver", {}))
     field = FieldCfg(**data.get("field", {}))
-    return FullCfg(model=model, memory=memory, solver=solver, field=field)
+    cac = CACCfg(**data.get("cac", {}))
+    return FullCfg(model=model, memory=memory, solver=solver, field=field, cac=cac)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field as dataclass_field
 
 
 @dataclass
@@ -12,6 +12,9 @@ class SolverCfg:
     tau_end: float = 0.0
     use_wmf: bool = False
     early_exit_tol: float = 1.0e-3
+    wmf_iters: int = 3
+    wmf_eps: float = 1.0e-3
+    wmf_cost_scale: float = 1.0
 
 
 @dataclass
@@ -36,8 +39,16 @@ class FieldCfg:
 
 
 @dataclass
+class CACCfg:
+    kappa: float = 0.0
+    advect: str = "identity"
+    decay: float = 0.0
+
+
+@dataclass
 class FullCfg:
-    model: ModelCfg = field(default_factory=ModelCfg)
-    memory: MemoryCfg = field(default_factory=MemoryCfg)
-    solver: SolverCfg = field(default_factory=SolverCfg)
-    field: FieldCfg = field(default_factory=FieldCfg)
+    model: ModelCfg = dataclass_field(default_factory=ModelCfg)
+    memory: MemoryCfg = dataclass_field(default_factory=MemoryCfg)
+    solver: SolverCfg = dataclass_field(default_factory=SolverCfg)
+    field: FieldCfg = dataclass_field(default_factory=FieldCfg)
+    cac: CACCfg = dataclass_field(default_factory=CACCfg)

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 
+from ..core.cac import CacheState
 from ..core.control_path import make_control_path
 from ..core.solver_pdhg import MirrorPDHG, SolverState
 from ..core.symp_diss_field import BandedField
 from ..core.types import FullCfg
+from ..memory.ann import ANNIndex, load_ann_index
 from ..memory.cmm import CMMemory
 from ..memory.readout_tied import TiedReadout
 from ..memory.shortlist import shortlist
@@ -27,7 +31,7 @@ class UELM4(nn.Module):
             (cfg.solver.beta_start, cfg.solver.beta_end),
             (cfg.solver.tau_start, cfg.solver.tau_end),
         )
-        self.solver = MirrorPDHG(cfg.solver, self.field, controller)
+        self.solver = MirrorPDHG(cfg.solver, self.field, controller, cac_cfg=cfg.cac)
         if cfg.model.tied_readout:
             lex_weight = self._lexicon_weight().detach()
             self.readout = TiedReadout(lex_weight)
@@ -47,24 +51,38 @@ class UELM4(nn.Module):
             table = self.memory
         return table[: self.cfg.model.vocab_size]
 
-    def forward(self, tokens: torch.Tensor, T: int | None = None) -> torch.Tensor:
+    def forward(
+        self,
+        tokens: torch.Tensor,
+        T: int | None = None,
+        cache: CacheState | None = None,
+        ann_index: ANNIndex | str | Path | None = None,
+        return_state: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, SolverState, CacheState]:
         cfg = self.cfg
         E = self.embed(tokens)
         X = make_control_path(E)
-        Kset, _ = shortlist(E, self.memory, cfg.memory.shortlist_k)
+        memory_table = self.memory.landmarks_view() if isinstance(self.memory, CMMemory) else self.memory
+        if isinstance(ann_index, (str, Path)):
+            ann_index = load_ann_index(ann_index, memory_table)
+        Kset, _ = shortlist(E, self.memory, cfg.memory.shortlist_k, ann_index=ann_index)
         if cfg.model.tied_readout:
             self.readout.tie_to(self._lexicon_weight())
 
-        memory_table = self.memory.landmarks_view() if isinstance(self.memory, CMMemory) else self.memory
         P0, Y0 = self.scout(E, memory_table, Kset)
         Lam0 = torch.zeros_like(Y0)
         st = SolverState(P=P0, Y=Y0, Lam=Lam0, Kset=Kset, energy=float("inf"))
 
+        cache_state = cache
         iters = T if T is not None else cfg.solver.T_train
+        self.solver.reset()
         for _ in range(iters):
-            st = self.solver.step(st, X, memory_table)
+            st, cache_state = self.solver.step(st, X, memory_table, cache=cache_state)
             if st.energy <= cfg.solver.early_exit_tol:
                 break
 
         logits = self.readout(st.Y)
+        if return_state:
+            cache_state = cache_state or CacheState.from_tensor(st.Y)
+            return logits, st, cache_state
         return logits

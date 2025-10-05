@@ -11,5 +11,12 @@ solver:
   T_infer: 1
   rho: 1.0
   early_exit_tol: 1.0e-4
+  wmf_iters: 2
+  wmf_eps: 1.0e-3
+  wmf_cost_scale: 1.0
 field:
   spectral_norm: false
+cac:
+  kappa: 0.05
+  advect: "shift"
+  decay: 0.0
