@@ -35,6 +35,11 @@ from uelm4.train import train_from_texts
 model = train_from_texts(["hello world", "uelm4 prototype"], config_name="small")
 ```
 
+Sample corpus training:
+```bash
+python scripts/train_sample.py --config small --epochs 2
+```
+
 Controller distillation:
 ```python
 from uelm4.config import load_config

@@ -1,0 +1,8 @@
+{
+  "shape": [
+    64,
+    128
+  ],
+  "dtype": "torch.float32",
+  "path": "landmarks.pt"
+}
