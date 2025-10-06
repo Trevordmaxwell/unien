@@ -19,6 +19,7 @@ import torch
 from uelm4.config import load_config
 from uelm4.data import LoaderConfig, SimpleTokenizer, build_dataloader
 from uelm4.model.decode import greedy_decode
+from uelm4.core.energy import compute_energy_terms, total_energy
 from uelm4.model.uelm4_model import UELM4
 from uelm4.train.train import train_epoch
 
@@ -35,12 +36,35 @@ def ensure_corpus(path: Path) -> list[str]:
         text = "".join(DEFAULT_LINES)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
-    return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    lines = [line.strip() for line in path.read_text(encoding="utf-8", errors="ignore").splitlines() if line.strip()]
+    if not lines:
+        # Fallback to a small default corpus if the provided file is empty
+        fallback = (
+            "hello world from uelm\n",
+            "this is a fallback modern corpus line\n",
+            "language modeling with equilibrium dynamics\n",
+            "shortlist and kl proximal updates are efficient\n",
+        )
+        return [s.strip() for s in fallback]
+    return lines
+
+
+def _top_k_vocab_from_lines(lines: Iterable[str], limit: int) -> list[str]:
+    from collections import Counter
+    tokens = []
+    for line in lines:
+        tokens.extend(line.strip().split())
+    if limit <= 0:
+        return []
+    counts = Counter(tokens)
+    return [tok for tok, _ in counts.most_common(limit)]
 
 
 def build_dataloader_from_lines(lines: Iterable[str], cfg, seq_len: int, batch_size: int = 2) -> torch.utils.data.DataLoader:
-    vocab = set(" ".join(lines).split())
-    tokenizer = SimpleTokenizer(vocab=vocab)
+    # Cap tokenizer vocab to model.vocab_size (reserve 4 for special tokens)
+    max_vocab = max(int(cfg.model.vocab_size) - 4, 0)
+    vocab_list = _top_k_vocab_from_lines(lines, max_vocab)
+    tokenizer = SimpleTokenizer(vocab=vocab_list)
     loader_cfg = LoaderConfig(max_length=seq_len, batch_size=batch_size, shuffle=True)
     return build_dataloader(list(lines), tokenizer, loader_cfg)
 
@@ -100,6 +124,7 @@ def main() -> None:
     parser.add_argument("--grid", type=str, default="", help="Optional grid string: T=1,2,3;k=16,32;wmf=0,1;be=1.2,1.5")
     parser.add_argument("--profile", type=str, choices=["fast", "balanced", "quality"], help="Preset: fast(T1,k16,KL,be1.5), balanced(T2,k16,KL,be1.5), quality(T3,k32,KL,be1.5)")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--energy-reg", type=float, default=0.0, help="Optional energy regularization weight in training loss (default 0)")
     args = parser.parse_args()
 
     out_dir = args.output.resolve()
@@ -199,7 +224,7 @@ def main() -> None:
         while tokens_seen < tokens_target and epochs < int(args.epochs):
             epoch = epochs
             epoch_start = time.perf_counter()
-            metrics = train_epoch(model, optimiser, dataloader, device)
+            metrics = train_epoch(model, optimiser, dataloader, device, energy_reg=float(args.energy_reg))
             elapsed_epoch = time.perf_counter() - epoch_start
             history.append({
                 "epoch": epoch + 1,
@@ -221,6 +246,16 @@ def main() -> None:
         # Per-run profiles
         fwd_ms_per_tok, iters_forward = forward_ms_per_token(model, cfg.model.vocab_size, seq_len=256, reps=3, device=device)
         dec_ms_per_tok = decode_ms_per_token(model, cfg.model.vocab_size, prompt_len=64, new_tokens=32, device=device)
+        # Energy breakdown on a single forward
+        with torch.no_grad():
+            prompt_energy = torch.randint(0, cfg.model.vocab_size, (min(256, cfg.model.vocab_size),), device=device)
+            _, st_energy, _ = model(prompt_energy, return_state=True)
+        memory_table = model.memory.landmarks_view() if hasattr(model.memory, "landmarks_view") else model.memory
+        terms = compute_energy_terms(st_energy, memory_table, cfg.solver.rho)
+        energy_primal = float(terms["primal"].detach())
+        energy_dual = float(terms["dual"].detach())
+        energy_entropy = float(terms["entropy"].detach())
+        energy_profile_total = float(total_energy(st_energy, memory_table, cfg.solver.rho).detach())
 
         final = history[-1]
         cfg_dict = asdict(cfg)
@@ -263,6 +298,10 @@ def main() -> None:
             "tokens_seen": int(tokens_seen),
             "epochs": int(epochs),
             "hardware": {"device": dev_type, "name": hw_name, "dtype": dtype_name},
+            "energy_primal": energy_primal,
+            "energy_dual": energy_dual,
+            "energy_entropy": energy_entropy,
+            "energy_profile_total": energy_profile_total,
         }
         # Append to global results list
         try:
@@ -410,6 +449,12 @@ def main() -> None:
             m = r["config"]["memory"]
             fh.write(
                 f"- {r['label']}: ppl={r['perplexity']:.3f}, ms/token={r['decode_ms_per_token']:.2f} (T={s['T_train']}, k={m['shortlist_k']}, wmf={int(s.get('use_wmf', 0))}, be={s['beta_end']})\n"
+            )
+
+        fh.write("\n## Energy Breakdown (profile prompt)\n\n")
+        for row in results:
+            fh.write(
+                f"- {row['label']}: primal={row.get('energy_primal', float('nan')):.4f}, dual={row.get('energy_dual', float('nan')):.4f}, entropy={row.get('energy_entropy', float('nan')):.4f}, total={row.get('energy_profile_total', float('nan')):.4f}\n"
             )
 
         fh.write("\n## Plots\n")

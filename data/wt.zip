@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>PermanentRedirect</Code><Message>The bucket you are attempting to access must be addressed using the specified endpoint. Please send all future requests to this endpoint.</Message><Endpoint>research.metamind.io.s3.amazonaws.com</Endpoint><Bucket>research.metamind.io</Bucket><RequestId>VWMW4V0A94X6YPCN</RequestId><HostId>uw1U3ycCogaKxXhQVhELRyoAJzgzMYv7KMqjhgqEJI/LJE2u1LSc8iEL0aoZGOBtqnViHB8gR6NdvPPsdiBD4UOS3rIQiHTp</HostId></Error>

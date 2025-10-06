@@ -18,7 +18,13 @@ def _sequence_batch(batch: torch.Tensor) -> torch.Tensor:
     return batch.unsqueeze(0) if batch.ndim == 1 else batch
 
 
-def train_epoch(model: UELM4, optimiser: AdamW, dataloader: Iterable[torch.Tensor], device: torch.device) -> dict[str, float]:
+def train_epoch(
+    model: UELM4,
+    optimiser: AdamW,
+    dataloader: Iterable[torch.Tensor],
+    device: torch.device,
+    energy_reg: float = 0.0,
+) -> dict[str, float]:
     model.train()
     total_loss_value = 0.0
     total_energy = 0.0
@@ -36,7 +42,8 @@ def train_epoch(model: UELM4, optimiser: AdamW, dataloader: Iterable[torch.Tenso
         for seq in seqs:
             seq = seq.to(device)
             logits, state, _ = model(seq, return_state=True)
-            seq_loss = total_loss(logits, seq, state)
+            weights = {"energy": float(energy_reg)} if energy_reg and energy_reg > 0 else None
+            seq_loss = total_loss(logits, seq, state, weights=weights)
             seq_loss.backward()
             batch_loss += float(seq_loss.detach())
             batch_energy += float(state.energy)
