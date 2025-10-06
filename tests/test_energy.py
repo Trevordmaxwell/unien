@@ -11,7 +11,7 @@ def test_energy_terms_non_negative():
     Lam = torch.zeros(n, d)
     Kset = torch.zeros(n, k, dtype=torch.long)
     M = torch.randn(8, d)
-    state = SolverState(P=P, Y=Y, Lam=Lam, Kset=Kset, energy=0.0)
+    state = SolverState(P=P, Y=Y, Lam=Lam, Kset=Kset, energy=0.0, iters=0)
     terms = compute_energy_terms(state, M, rho=1.0)
     for value in terms.values():
         scalar = float(value.detach())

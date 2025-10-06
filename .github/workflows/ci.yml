@@ -10,3 +10,7 @@ jobs:
       - run: python -m venv .venv
       - run: . .venv/bin/activate && pip install -e . && pip install pytest
       - run: . .venv/bin/activate && pytest
+      - name: Smoke Phase-B grid
+        run: |
+          . .venv/bin/activate
+          bash scripts/smoke.sh

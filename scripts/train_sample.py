@@ -34,7 +34,16 @@ def main() -> None:
 
     for epoch in range(args.epochs):
         metrics = train_epoch(model, optimiser, dataloader, device)
-        print(f"epoch={epoch+1} loss={metrics['loss']:.4f} energy={metrics['energy']:.4f}")
+        print(
+            "epoch={epoch} loss={loss:.4f} ppl={ppl:.2f} energy={energy:.4f} iters/token={iters:.2f}"
+            .format(
+                epoch=epoch + 1,
+                loss=metrics["loss"],
+                ppl=metrics["perplexity"],
+                energy=metrics["energy"],
+                iters=metrics["iters_per_token"],
+            )
+        )
 
     lm_head = model.readout if hasattr(model, "readout") else None
     if lm_head is not None:

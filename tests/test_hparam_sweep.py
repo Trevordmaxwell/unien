@@ -15,5 +15,7 @@ def test_run_sweep(tmp_path):
     results = run_sweep("small", corpus, sweeps, epochs=1, device=torch.device("cpu"))
     assert len(results) == 2
     for res in results:
-        assert "loss" in res.metrics and "energy" in res.metrics
-        assert res.metrics["loss"] >= 0
+        metrics = res.metrics
+        assert "loss" in metrics and "energy" in metrics
+        assert "perplexity" in metrics and "iters_per_token" in metrics
+        assert metrics["loss"] >= 0

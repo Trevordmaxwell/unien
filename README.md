@@ -71,3 +71,10 @@ python scripts/profile_decode.py --config small --landmarks artifacts/phase_b/la
 ```
 
 Documentation lives in `docs/`, configs in `src/uelm4/config/`, and reproducible scripts under `scripts/`.
+
+## Smoke Test
+Quick sanity check for Phase-B sweep outputs on CPU (matched tokens):
+```bash
+bash scripts/smoke.sh
+```
+This runs a small grid with `--tokens 200000` and validates `tmp_grid/grid_results.json` contains all required keys per run.
