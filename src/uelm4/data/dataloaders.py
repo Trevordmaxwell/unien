@@ -23,6 +23,8 @@ class PackedDataset(Dataset):
         self.texts: List[str] = list(texts)
         self.tok = tokenizer
         self.max_length = max_length
+        # Expose pad_id for downstream loss masking
+        self.pad_id: int = self.tok.token_to_id[self.tok.cfg.pad_token]
 
     def __len__(self) -> int:
         return len(self.texts)
@@ -32,8 +34,7 @@ class PackedDataset(Dataset):
         if tokens.numel() >= self.max_length:
             return tokens[: self.max_length]
         pad_len = self.max_length - tokens.numel()
-        pad_id = self.tok.token_to_id[self.tok.cfg.pad_token]
-        padding = torch.full((pad_len,), pad_id, dtype=torch.long)
+        padding = torch.full((pad_len,), self.pad_id, dtype=torch.long)
         return torch.cat([tokens, padding], dim=0)
 
 

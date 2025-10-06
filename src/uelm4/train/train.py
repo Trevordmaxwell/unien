@@ -11,7 +11,7 @@ from ..config import load_config
 from ..data.dataloaders import LoaderConfig, build_dataloader
 from ..data.tokenization import SimpleTokenizer
 from ..model.uelm4_model import UELM4
-from ..train.losses import total_loss
+from ..train.losses import total_loss, language_model_loss, energy_regulariser
 
 
 def _sequence_batch(batch: torch.Tensor) -> torch.Tensor:
@@ -31,6 +31,14 @@ def train_epoch(
     total_iters = 0.0
     total_tokens = 0
     batches = 0
+    # Try to obtain pad_id from dataset for masking CE on padding
+    pad_id: int | None = None
+    try:
+        ds = dataloader.dataset  # type: ignore[attr-defined]
+        pad_id = getattr(ds, 'pad_id', None)
+    except Exception:
+        pad_id = None
+
     for batch in dataloader:
         optimiser.zero_grad()
         seqs = _sequence_batch(batch)
@@ -42,8 +50,12 @@ def train_epoch(
         for seq in seqs:
             seq = seq.to(device)
             logits, state, _ = model(seq, return_state=True)
-            weights = {"energy": float(energy_reg)} if energy_reg and energy_reg > 0 else None
-            seq_loss = total_loss(logits, seq, state, weights=weights)
+            # Mask CE on padding if pad_id is available
+            ce = language_model_loss(logits, seq, ignore_index=pad_id if isinstance(pad_id, int) else None)
+            if energy_reg and energy_reg > 0 and state is not None:
+                seq_loss = ce + energy_regulariser(state, float(energy_reg))
+            else:
+                seq_loss = ce
             seq_loss.backward()
             batch_loss += float(seq_loss.detach())
             batch_energy += float(state.energy)
