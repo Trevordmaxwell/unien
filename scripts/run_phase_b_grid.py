@@ -288,6 +288,7 @@ def main() -> None:
                 },
                 "memory": {"K": cfg_dict["memory"]["K"], "shortlist_k": cfg_dict["memory"]["shortlist_k"]},
             },
+            "energy_reg": float(args.energy_reg),
             "final_loss": float(final["loss"]),
             "perplexity": float(final["perplexity"]),
             "final_energy": float(final["energy"]),
