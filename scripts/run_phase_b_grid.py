@@ -98,6 +98,7 @@ def main() -> None:
     parser.add_argument("--width", type=int, default=0, help="Optional model width override (d)")
     parser.add_argument("--vocab-size", type=int, default=0, help="Optional vocab size override")
     parser.add_argument("--grid", type=str, default="", help="Optional grid string: T=1,2,3;k=16,32;wmf=0,1;be=1.2,1.5")
+    parser.add_argument("--profile", type=str, choices=["fast", "balanced", "quality"], help="Preset: fast(T1,k16,KL,be1.5), balanced(T2,k16,KL,be1.5), quality(T3,k32,KL,be1.5)")
     parser.add_argument("--device", default="cpu")
     args = parser.parse_args()
 
@@ -127,14 +128,25 @@ def main() -> None:
             return None
         return T_vals, k_vals, wmf_vals, be_vals
 
-    parsed = _parse_grid(args.grid)
-    if parsed is None:
-        T_VALUES = [1, 2, 3]
-        K_VALUES = [16, 32]
-        WMF_VALUES = [False, True]
-        BETA_END_VALUES = [1.2, 1.5]
+    # Apply profile presets if provided (overrides --grid)
+    if args.profile:
+        if args.profile == "fast":
+            T_VALUES, K_VALUES, WMF_VALUES, BETA_END_VALUES = [1], [16], [False], [1.5]
+        elif args.profile == "balanced":
+            T_VALUES, K_VALUES, WMF_VALUES, BETA_END_VALUES = [2], [16], [False], [1.5]
+        elif args.profile == "quality":
+            T_VALUES, K_VALUES, WMF_VALUES, BETA_END_VALUES = [3], [32], [False], [1.5]
+        else:  # pragma: no cover
+            raise SystemExit(f"Unknown profile: {args.profile}")
     else:
-        T_VALUES, K_VALUES, WMF_VALUES, BETA_END_VALUES = parsed
+        parsed = _parse_grid(args.grid)
+        if parsed is None:
+            T_VALUES = [1, 2, 3]
+            K_VALUES = [16, 32]
+            WMF_VALUES = [False, True]
+            BETA_END_VALUES = [1.2, 1.5]
+        else:
+            T_VALUES, K_VALUES, WMF_VALUES, BETA_END_VALUES = parsed
 
     summary_rows = []
     profiles = []

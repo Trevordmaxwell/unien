@@ -78,3 +78,11 @@ Quick sanity check for Phase-B sweep outputs on CPU (matched tokens):
 bash scripts/smoke.sh
 ```
 This runs a small grid with `--tokens 200000` and validates `tmp_grid/grid_results.json` contains all required keys per run.
+
+## One-click Preset Launchers
+Three Desktop launchers are provided for common presets (matched tokens 500k, CPU):
+- `~/Desktop/run_phase_b_fast.command` → Fast: T=1, k=16, KL, β_end=1.5
+- `~/Desktop/run_phase_b_balanced.command` → Balanced: T=2, k=16, KL, β_end=1.5
+- `~/Desktop/run_phase_b_quality.command` → Quality (KL): T=3, k=32, KL, β_end=1.5
+
+You can also run the grid script directly with `--profile {fast,balanced,quality}`.
