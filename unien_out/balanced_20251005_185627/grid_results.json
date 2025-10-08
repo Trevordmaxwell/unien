@@ -1,0 +1,34 @@
+[
+  {
+    "label": "T2_k16_kl_be1.5",
+    "config": {
+      "model": {
+        "d": 64,
+        "vocab_size": 256
+      },
+      "solver": {
+        "T_train": 2,
+        "T_infer": 2,
+        "beta_end": 1.5
+      },
+      "memory": {
+        "K": 512,
+        "shortlist_k": 16
+      }
+    },
+    "final_loss": 0.13126834036250198,
+    "perplexity": 1.1402737217259131,
+    "final_energy": 4954.206698172433,
+    "iters_per_token": 0.0,
+    "decode_ms_per_token": 4.251433594617993,
+    "forward_ms_per_token": 0.026937988347223534,
+    "total_seconds": 51.84216837497661,
+    "tokens_seen": 537600,
+    "epochs": 5,
+    "hardware": {
+      "device": "cpu",
+      "name": "arm",
+      "dtype": "fp32"
+    }
+  }
+]

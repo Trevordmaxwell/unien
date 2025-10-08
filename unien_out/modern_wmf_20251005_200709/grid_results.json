@@ -1,0 +1,74 @@
+[
+  {
+    "label": "T3_k32_wmf_be1.2",
+    "config": {
+      "model": {
+        "d": 96,
+        "vocab_size": 512
+      },
+      "solver": {
+        "T_train": 3,
+        "T_infer": 3,
+        "beta_end": 1.2
+      },
+      "memory": {
+        "K": 512,
+        "shortlist_k": 32
+      }
+    },
+    "final_loss": 0.00011741909065676737,
+    "perplexity": 1.000117425984548,
+    "final_energy": 33933.578393554686,
+    "iters_per_token": 0.0,
+    "decode_ms_per_token": 29.804173187585548,
+    "forward_ms_per_token": 0.2892966588206036,
+    "total_seconds": 757.1932360840146,
+    "tokens_seen": 2007040,
+    "epochs": 49,
+    "hardware": {
+      "device": "cpu",
+      "name": "arm",
+      "dtype": "fp32"
+    },
+    "energy_primal": 7280.07568359375,
+    "energy_dual": 7860.05712890625,
+    "energy_entropy": 1.4083412885665894,
+    "energy_profile_total": 15140.146484375
+  },
+  {
+    "label": "T3_k32_wmf_be1.5",
+    "config": {
+      "model": {
+        "d": 96,
+        "vocab_size": 512
+      },
+      "solver": {
+        "T_train": 3,
+        "T_infer": 3,
+        "beta_end": 1.5
+      },
+      "memory": {
+        "K": 512,
+        "shortlist_k": 32
+      }
+    },
+    "final_loss": 6.124947951775539e-05,
+    "perplexity": 1.0000612513553053,
+    "final_energy": 11187.204064941407,
+    "iters_per_token": 0.0,
+    "decode_ms_per_token": 20.992488281990518,
+    "forward_ms_per_token": 0.22789252216171008,
+    "total_seconds": 661.9009717080044,
+    "tokens_seen": 2007040,
+    "epochs": 49,
+    "hardware": {
+      "device": "cpu",
+      "name": "arm",
+      "dtype": "fp32"
+    },
+    "energy_primal": 6539.70654296875,
+    "energy_dual": 6898.77685546875,
+    "energy_entropy": 1.3927538394927979,
+    "energy_profile_total": 13438.4970703125
+  }
+]

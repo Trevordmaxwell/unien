@@ -1,0 +1,2 @@
+label,ppl,decode_ms_per_token,T,k,use_wmf,beta_end
+T3_k32_kl_be1.5,13.031562285610535,3.9946757824509405,3,32,0,1.5

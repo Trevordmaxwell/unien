@@ -1,0 +1,2 @@
+label,final_loss,perplexity,final_energy,iters_per_token,decode_ms_per_token,forward_ms_per_token,total_seconds,tokens_seen,epochs,T,k,use_wmf,beta_end,device,hardware_name,dtype
+T1_k16_kl_be1.5,0.12115311300869853,1.1287977327535557,406.8586496262323,0.0,3.689537748869043,0.021721246109033625,40.36068358400371,537600,5,1,16,0,1.5,cpu,arm,fp32

@@ -1,0 +1,39 @@
+[
+  {
+    "label": "T1_k16_kl_be1.5",
+    "config": {
+      "model": {
+        "d": 64,
+        "vocab_size": 256
+      },
+      "solver": {
+        "T_train": 1,
+        "T_infer": 1,
+        "beta_end": 1.5
+      },
+      "memory": {
+        "K": 512,
+        "shortlist_k": 16
+      }
+    },
+    "energy_reg": 0.0005,
+    "final_loss": 0.22321437540508451,
+    "perplexity": 1.2500885332487,
+    "final_energy": 170.6700769878569,
+    "iters_per_token": 0.0,
+    "decode_ms_per_token": 1.5941262827254832,
+    "forward_ms_per_token": 0.013025229160727273,
+    "total_seconds": 23.230983124987688,
+    "tokens_seen": 537600,
+    "epochs": 5,
+    "hardware": {
+      "device": "cpu",
+      "name": "arm",
+      "dtype": "fp32"
+    },
+    "energy_primal": 56.70677185058594,
+    "energy_dual": 56.70677185058594,
+    "energy_entropy": 0.4690059423446655,
+    "energy_profile_total": 113.4182357788086
+  }
+]

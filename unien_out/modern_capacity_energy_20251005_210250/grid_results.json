@@ -1,0 +1,76 @@
+[
+  {
+    "label": "T1_k16_kl_be1.5",
+    "config": {
+      "model": {
+        "d": 128,
+        "vocab_size": 8192
+      },
+      "solver": {
+        "T_train": 1,
+        "T_infer": 1,
+        "beta_end": 1.5
+      },
+      "memory": {
+        "K": 512,
+        "shortlist_k": 16
+      }
+    },
+    "energy_reg": 0.0002,
+    "final_loss": 0.002108963075443171,
+    "perplexity": 1.0021111885022427,
+    "final_energy": 8.600713670253754,
+    "iters_per_token": 0.0,
+    "decode_ms_per_token": 3.7603659056912875,
+    "forward_ms_per_token": 0.035514431071230014,
+    "total_seconds": 165.38368862500647,
+    "tokens_seen": 2007040,
+    "epochs": 49,
+    "hardware": {
+      "device": "cpu",
+      "name": "arm",
+      "dtype": "fp32"
+    },
+    "energy_primal": 11.887139320373535,
+    "energy_dual": 11.887139320373535,
+    "energy_entropy": 1.0585498809814453,
+    "energy_profile_total": 23.78486442565918
+  },
+  {
+    "label": "T2_k16_kl_be1.5",
+    "config": {
+      "model": {
+        "d": 128,
+        "vocab_size": 8192
+      },
+      "solver": {
+        "T_train": 2,
+        "T_infer": 2,
+        "beta_end": 1.5
+      },
+      "memory": {
+        "K": 512,
+        "shortlist_k": 16
+      }
+    },
+    "energy_reg": 0.0002,
+    "final_loss": 0.06470409389585256,
+    "perplexity": 1.0668432922306208,
+    "final_energy": 323.26333541870116,
+    "iters_per_token": 0.0,
+    "decode_ms_per_token": 5.854283874214161,
+    "forward_ms_per_token": 0.043624186218949035,
+    "total_seconds": 226.17951500002528,
+    "tokens_seen": 2007040,
+    "epochs": 49,
+    "hardware": {
+      "device": "cpu",
+      "name": "arm",
+      "dtype": "fp32"
+    },
+    "energy_primal": 99.02600860595703,
+    "energy_dual": 105.23212432861328,
+    "energy_entropy": 0.6750627756118774,
+    "energy_profile_total": 204.26487731933594
+  }
+]
